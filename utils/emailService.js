@@ -1,57 +1,30 @@
-const nodemailer = require('nodemailer');
-const util = require('util');
+const sgMail = require('@sendgrid/mail');
 
-// Prefer pooling and stronger TLS for more reliable connections. Keep credentials in env when possible.
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER || 'syntaxsquadfinalyearproject@gmail.com',
-        pass: process.env.EMAIL_PASS || 'nhif qwky uxza delu'
-    },
-    pool: true,
-    secure: true,
-    // allow self-signed certs if necessary (usually not needed for Gmail). Keep for network environments that rewrite TLS.
-    tls: { rejectUnauthorized: false }
-});
-
-// Verify transporter at startup to get early feedback
-transporter.verify().then(() => {
-    console.log('Email transporter verified and ready');
-}).catch(err => {
-    console.error('Email transporter verification failed:', err && err.message ? err.message : err);
-});
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // Helper to sleep
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Send with retry/backoff for transient network errors (ECONNRESET, ETIMEDOUT, etc.)
+// Send with retry/backoff for transient network errors
 async function sendWithRetry(mailOptions, maxAttempts = 3) {
-    const transientCodes = new Set(['ECONNRESET', 'ETIMEDOUT', 'EPIPE', 'ENOTFOUND', 'ECONNREFUSED']);
     let attempt = 0;
     let lastErr;
     while (++attempt <= maxAttempts) {
         try {
-            // transporter.sendMail returns a Promise in modern nodemailer versions
-            const info = await transporter.sendMail(mailOptions);
-            // log accepted/rejected recipients for debugging
-            if (info && (info.accepted || info.rejected)) {
-                console.log(`Email send info for ${mailOptions.to}: accepted=${JSON.stringify(info.accepted)}, rejected=${JSON.stringify(info.rejected)}`);
-            } else {
-                console.log(`Email send info for ${mailOptions.to}:`, info && info.response ? info.response : info);
-            }
+            const info = await sgMail.send(mailOptions);
+            console.log(`Email send attempt ${attempt} successful for ${mailOptions.to}`);
             return info;
         } catch (err) {
             lastErr = err;
-            const code = err && err.code;
-            console.error(`Email send attempt ${attempt} failed for ${mailOptions.to}:`, err && err.message ? err.message : err, 'code=', code);
-            // If transient and we have attempts left, backoff and retry
-            if (attempt < maxAttempts && code && transientCodes.has(code)) {
+            console.error(`Email send attempt ${attempt} failed for ${mailOptions.to}:`, err && err.response ? JSON.stringify(err.response.body) : (err && err.message ? err.message : err));
+            // If we have attempts left, backoff and retry
+            if (attempt < maxAttempts) {
                 const backoff = 500 * Math.pow(2, attempt - 1); // 500ms, 1000ms, 2000ms...
                 console.log(`Retrying email to ${mailOptions.to} in ${backoff}ms (attempt ${attempt + 1}/${maxAttempts})`);
                 await sleep(backoff);
                 continue;
             }
-            // For non-transient or exhausted attempts, rethrow
+            // For exhausted attempts, rethrow
             throw err;
         }
     }
@@ -174,7 +147,7 @@ const sendWelcomeEmail = async (doctorData) => {
         if (doctorData.nominee && doctorData.nominee.email) bccRecipients.push(doctorData.nominee.email);
         if (doctorData.familyMember1 && doctorData.familyMember1.email) bccRecipients.push(doctorData.familyMember1.email);
         if (doctorData.familyMember2 && doctorData.familyMember2.email) bccRecipients.push(doctorData.familyMember2.email);
-        if (bccRecipients.length > 0) doctorMailOptions.bcc = bccRecipients.join(',');
+        if (bccRecipients.length > 0) doctorMailOptions.bcc = bccRecipients;
         try {
             console.log('Attempting to send email to doctor:', doctorData.email);
             await sendWithRetry(doctorMailOptions);
