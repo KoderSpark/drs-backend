@@ -11,12 +11,15 @@ const doctorSchema = new mongoose.Schema(
     email: { type: String, required: true, trim: true, unique: true, lowercase: true },
     passwordHash: { type: String, required: true },
     passportPhoto: { type: String },
-  passportPhotoPublicId: { type: String },
+    passportPhotoPublicId: { type: String },
+    aadharNumber: { type: String, required: true },
+    aadharPhoto: { type: String, required: true },
+    aadharPhotoPublicId: { type: String },
   certificates: { type: String },
   certificatesPublicId: { type: String },
     houseAddress: { type: String },
     clinicAddress: { type: String },
-    nominee: {
+    nominees: [{
       name: { type: String },
       age: { type: Number },
       sex: { type: String },
@@ -24,8 +27,9 @@ const doctorSchema = new mongoose.Schema(
       phone: { type: String },
       bankAccountNumber: { type: String, required: true },
       ifscCode: { type: String, required: true },
-      bankHolderName: { type: String, required: true }
-    },
+      bankHolderName: { type: String, required: true },
+      percentage: { type: Number, required: true, default: 100 }
+    }],
     familyMember1: {
       name: { type: String },
       age: { type: Number },

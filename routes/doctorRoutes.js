@@ -16,7 +16,8 @@ const upload = multer({ storage });
 // POST /api/doctors/register
 router.post('/register', upload.fields([
   { name: 'passportPhoto', maxCount: 1 },
-  { name: 'certificates', maxCount: 1 }
+  { name: 'certificates', maxCount: 1 },
+  { name: 'aadharPhoto', maxCount: 1 }
 ]), async (req, res) => {
   try {
     const {
@@ -30,7 +31,8 @@ router.post('/register', upload.fields([
       password,
       houseAddress,
       clinicAddress,
-      nominee,
+      aadharNumber,
+      nominees,
       familyMember1,
       familyMember2,
       acceptTerms,
@@ -39,9 +41,10 @@ router.post('/register', upload.fields([
 
   const passportFile = req.files && req.files.passportPhoto ? req.files.passportPhoto[0] : null;
   const certFile = req.files && req.files.certificates ? req.files.certificates[0] : null;
+  const aadharFile = req.files && req.files.aadharPhoto ? req.files.aadharPhoto[0] : null;
 
-    if (!name || !phone || !email || !password) {
-      return res.status(400).json({ message: 'name, phone, email, password are required' });
+    if (!name || !phone || !email || !password || !aadharNumber || !aadharFile) {
+      return res.status(400).json({ message: 'name, phone, email, password, aadharNumber, and aadharPhoto are required' });
     }
 
     const existing = await Doctor.findOne({ $or: [{ email }, { phone }] });
@@ -51,16 +54,36 @@ router.post('/register', upload.fields([
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Parse nominee and validate bank details
-    let nomineeObj = nominee ? (typeof nominee === 'string' ? JSON.parse(nominee) : nominee) : undefined;
-    if (!nomineeObj || !nomineeObj.bankAccountNumber || !nomineeObj.confirmBankAccountNumber || !nomineeObj.ifscCode || !nomineeObj.bankHolderName) {
-      return res.status(400).json({ message: 'Nominee bank details are required.' });
+    // Parse nominees and validate bank details
+    let nomineesArr = nominees ? (typeof nominees === 'string' ? JSON.parse(nominees) : nominees) : [];
+    if (!Array.isArray(nomineesArr) || nomineesArr.length === 0) {
+      return res.status(400).json({ message: 'At least one nominee is required.' });
     }
-    if (nomineeObj.bankAccountNumber !== nomineeObj.confirmBankAccountNumber) {
-      return res.status(400).json({ message: 'Nominee account numbers do not match.' });
+    
+    let totalPercentage = 0;
+    for (let i = 0; i < nomineesArr.length; i++) {
+      const n = nomineesArr[i];
+      if (!n || !n.bankAccountNumber || !n.confirmBankAccountNumber || !n.ifscCode || !n.bankHolderName || !n.percentage) {
+        return res.status(400).json({ message: 'All nominee fields including percentage and bank details are required.' });
+      }
+      if (n.bankAccountNumber !== n.confirmBankAccountNumber) {
+        return res.status(400).json({ message: 'Nominee account numbers do not match.' });
+      }
+      
+      const p = parseFloat(n.percentage);
+      if (isNaN(p) || p <= 0) {
+        return res.status(400).json({ message: 'Valid positive percentage is required.' });
+      }
+      totalPercentage += p;
+      n.percentage = p;
+      
+      // Remove confirmBankAccountNumber before saving
+      delete n.confirmBankAccountNumber;
     }
-    // Remove confirmBankAccountNumber before saving
-    delete nomineeObj.confirmBankAccountNumber;
+
+    if (Math.abs(totalPercentage - 100) > 0.01) {
+      return res.status(400).json({ message: 'Total nominee percentage must equal 100.' });
+    }
 
     const doctorData = {
       name,
@@ -73,9 +96,11 @@ router.post('/register', upload.fields([
       passwordHash,
       passportPhoto: null,
       certificates: null,
+      aadharNumber,
+      aadharPhoto: null,
       houseAddress,
       clinicAddress,
-      nominee: nomineeObj,
+      nominees: nomineesArr,
       familyMember1: familyMember1 ? (typeof familyMember1 === 'string' ? JSON.parse(familyMember1) : familyMember1) : undefined,
       familyMember2: familyMember2 ? (typeof familyMember2 === 'string' ? JSON.parse(familyMember2) : familyMember2) : undefined,
       acceptTerms: !!acceptTerms,
@@ -134,6 +159,24 @@ router.post('/register', upload.fields([
       }
     }
 
+    if (aadharFile) {
+      try {
+        const uploadRes3 = await uploadBuffer(aadharFile.buffer, { 
+          folder: 'doctors/aadhar',
+          resource_type: 'auto',
+          allowed_formats: ['pdf', 'png', 'jpg', 'jpeg']
+        });
+        if (!uploadRes3 || !uploadRes3.secure_url) {
+          throw new Error('Invalid response from Cloudinary upload');
+        }
+        doctorData.aadharPhoto = uploadRes3.secure_url;
+        doctorData.aadharPhotoPublicId = uploadRes3.public_id;
+      } catch (error) {
+        console.error('Aadhar photo upload error:', error);
+        return res.status(500).json({ message: 'Failed to upload Aadhar photo: ' + error.message });
+      }
+    }
+
     try {
       const doctor = await Doctor.create(doctorData);
       const token = generateToken({ id: doctor._id, role: 'doctor' });
@@ -146,7 +189,7 @@ router.post('/register', upload.fields([
         // Fallback to the original submitted data for any nested contacts that might not be present on the saved doc
         const contactPayload = {
           ...doctorObj,
-          nominee: doctorObj.nominee && doctorObj.nominee.email ? doctorObj.nominee : (doctorData.nominee || undefined),
+          nominees: doctorObj.nominees ? doctorObj.nominees : (doctorData.nominees || []),
           familyMember1: doctorObj.familyMember1 && doctorObj.familyMember1.email ? doctorObj.familyMember1 : (doctorData.familyMember1 || undefined),
           familyMember2: doctorObj.familyMember2 && doctorObj.familyMember2.email ? doctorObj.familyMember2 : (doctorData.familyMember2 || undefined)
         };
@@ -299,7 +342,8 @@ router.get('/:id', authMiddleware, async (req, res) => {
 // PATCH /api/doctors/:id/profile - protected, doctor can update own profile (includes file uploads)
 router.patch('/:id/profile', authMiddleware, upload.fields([
   { name: 'passportPhoto', maxCount: 1 },
-  { name: 'certificates', maxCount: 1 }
+  { name: 'certificates', maxCount: 1 },
+  { name: 'aadharPhoto', maxCount: 1 }
 ]), async (req, res) => {
   try {
     const { id } = req.params;
@@ -320,7 +364,7 @@ router.patch('/:id/profile', authMiddleware, upload.fields([
 
     // Track changes for notification
     const changes = [];
-    const simpleFields = ['name','age','sex','qualification','phone','email','alternateMobile','houseAddress','clinicAddress'];
+    const simpleFields = ['name','age','sex','qualification','phone','email','alternateMobile','houseAddress','clinicAddress','aadharNumber'];
     for (const field of simpleFields) {
       if (Object.prototype.hasOwnProperty.call(req.body, field)) {
         const val = req.body[field];
@@ -331,22 +375,52 @@ router.patch('/:id/profile', authMiddleware, upload.fields([
       }
     }
 
-    // Nested objects: nominee, familyMember1, familyMember2
-    for (const nested of ['nominee','familyMember1','familyMember2']) {
+    // Handle nominees array
+    if (req.body.nominees) {
+      try {
+        let nomineesArr = typeof req.body.nominees === 'string' ? JSON.parse(req.body.nominees) : req.body.nominees;
+        if (!Array.isArray(nomineesArr) || nomineesArr.length === 0) {
+          return res.status(400).json({ message: 'At least one nominee is required.' });
+        }
+        
+        let totalPercentage = 0;
+        for (let i = 0; i < nomineesArr.length; i++) {
+          const n = nomineesArr[i];
+          if (!n || !n.bankAccountNumber || !n.ifscCode || !n.bankHolderName || !n.percentage) {
+            return res.status(400).json({ message: 'All nominee fields (including percentage) and bank details are required.' });
+          }
+          // The form might not send confirmBankAccountNumber during partial update depending on UX, but we enforce match if sent
+          if (n.confirmBankAccountNumber && n.bankAccountNumber !== n.confirmBankAccountNumber) {
+            return res.status(400).json({ message: 'Nominee account numbers do not match.' });
+          }
+          
+          const p = parseFloat(n.percentage);
+          if (isNaN(p) || p <= 0) {
+            return res.status(400).json({ message: 'Valid positive percentage is required.' });
+          }
+          totalPercentage += p;
+          n.percentage = p;
+          
+          delete n.confirmBankAccountNumber;
+        }
+
+        if (Math.abs(totalPercentage - 100) > 0.01) {
+          return res.status(400).json({ message: 'Total nominee percentage must equal 100.' });
+        }
+        
+        doctor.nominees = nomineesArr;
+        changes.push({ field: 'nominees', old: '...', new: '...' });
+      } catch (e) {
+        console.error('Failed to parse nominees:', e);
+        return res.status(400).json({ message: 'Invalid nominees format' });
+      }
+    }
+
+    // Nested objects: familyMember1, familyMember2
+    for (const nested of ['familyMember1','familyMember2']) {
       if (req.body[nested]) {
         try {
           const parsed = typeof req.body[nested] === 'string' ? JSON.parse(req.body[nested]) : req.body[nested];
-          if (nested === 'nominee') {
-            // Validate nominee bank details
-            if (!parsed.bankAccountNumber || !parsed.confirmBankAccountNumber || !parsed.ifscCode || !parsed.bankHolderName) {
-              return res.status(400).json({ message: 'Nominee bank details are required.' });
-            }
-            if (parsed.bankAccountNumber !== parsed.confirmBankAccountNumber) {
-              return res.status(400).json({ message: 'Nominee account numbers do not match.' });
-            }
-            // Remove confirmBankAccountNumber before saving
-            delete parsed.confirmBankAccountNumber;
-          }
           if (!doctor[nested]) doctor[nested] = {};
           Object.keys(parsed).forEach(k => {
             if (parsed[k] !== undefined && doctor[nested][k] !== parsed[k]) {
@@ -369,6 +443,7 @@ router.patch('/:id/profile', authMiddleware, upload.fields([
     // File uploads
     const passportFile = req.files && req.files.passportPhoto ? req.files.passportPhoto[0] : null;
     const certFile = req.files && req.files.certificates ? req.files.certificates[0] : null;
+    const aadharFile = req.files && req.files.aadharPhoto ? req.files.aadharPhoto[0] : null;
 
     if (passportFile) {
       try {
@@ -404,6 +479,23 @@ router.patch('/:id/profile', authMiddleware, upload.fields([
       }
     }
 
+    if (aadharFile) {
+      try {
+        const uploadRes = await uploadBuffer(aadharFile.buffer, {
+          folder: 'doctors/aadhar',
+          resource_type: 'auto',
+          allowed_formats: ['pdf','png','jpg','jpeg']
+        });
+        if (uploadRes && uploadRes.secure_url) {
+          doctor.aadharPhoto = uploadRes.secure_url;
+          doctor.aadharPhotoPublicId = uploadRes.public_id;
+        }
+      } catch (err) {
+        console.error('Aadhar upload error:', err);
+        return res.status(500).json({ message: 'Failed to upload Aadhar photo' });
+      }
+    }
+
     await doctor.save();
     const out = doctor.toObject();
     delete out.passwordHash;
@@ -427,7 +519,7 @@ router.patch('/:id/profile', authMiddleware, upload.fields([
         const { sendWelcomeEmail } = require('../utils/emailService');
         const contactPayload = {
           ...out,
-          nominee: out.nominee && out.nominee.email ? out.nominee : undefined,
+          nominees: out.nominees ? out.nominees : [],
           familyMember1: out.familyMember1 && out.familyMember1.email ? out.familyMember1 : undefined,
           familyMember2: out.familyMember2 && out.familyMember2.email ? out.familyMember2 : undefined,
           updateNotification: {
@@ -452,7 +544,8 @@ router.patch('/:id/profile', authMiddleware, upload.fields([
 // This route now accepts multipart form-data to allow updating images (passportPhoto, certificates)
 router.patch('/:id', authMiddleware, upload.fields([
   { name: 'passportPhoto', maxCount: 1 },
-  { name: 'certificates', maxCount: 1 }
+  { name: 'certificates', maxCount: 1 },
+  { name: 'aadharPhoto', maxCount: 1 }
 ]), async (req, res) => {
   try {
     const { id } = req.params;
@@ -460,7 +553,7 @@ router.patch('/:id', authMiddleware, upload.fields([
       return res.status(403).json({ message: 'Forbidden' });
     }
 
-    const allowedUpdates = ['name', 'age', 'sex', 'qualification', 'phone', 'alternateMobile', 'email', 'houseAddress', 'clinicAddress', 'password', 'nominee', 'familyMember1', 'familyMember2'];
+    const allowedUpdates = ['name', 'age', 'sex', 'qualification', 'phone', 'alternateMobile', 'email', 'houseAddress', 'clinicAddress', 'password', 'nominees', 'familyMember1', 'familyMember2', 'aadharNumber'];
     const doctor = await Doctor.findById(id);
     if (!doctor) return res.status(404).json({ message: 'Doctor not found' });
 
@@ -478,8 +571,8 @@ router.patch('/:id', authMiddleware, upload.fields([
       // Debug log
       console.log('Processing field:', key);
 
-      // Handle nested objects (nominee, familyMember1, familyMember2)
-      if (['nominee', 'familyMember1', 'familyMember2'].includes(key)) {
+      // Handle family objects explicitly
+      if (['familyMember1', 'familyMember2'].includes(key)) {
         try {
           const parsedValue = typeof value === 'string' ? JSON.parse(value) : value;
           // Only update fields that are provided in the request
@@ -493,6 +586,26 @@ router.patch('/:id', authMiddleware, upload.fields([
         } catch (e) {
           console.error(`Error parsing ${key}:`, e);
           return res.status(400).json({ message: `Invalid ${key} data format` });
+        }
+      }
+
+      // Handle nominees directly
+      if (key === 'nominees') {
+        try {
+          let nomineesArr = typeof value === 'string' ? JSON.parse(value) : value;
+          if (Array.isArray(nomineesArr)) {
+            // Re-validate that percentages sum to 100% just in case
+            let total = 0;
+            nomineesArr.forEach(n => total += parseFloat(n.percentage || 0));
+            if (Math.abs(total - 100) > 0.01) {
+              return res.status(400).json({ message: 'Total nominee percentage must equal 100.' });
+            }
+            doctor.nominees = nomineesArr;
+          }
+          continue;
+        } catch (e) {
+          console.error(`Error parsing nominees:`, e);
+          return res.status(400).json({ message: `Invalid nominees data format` });
         }
       }
 
@@ -514,6 +627,7 @@ router.patch('/:id', authMiddleware, upload.fields([
     // Handle file uploads if present
     const passportFile = req.files && req.files.passportPhoto ? req.files.passportPhoto[0] : null;
     const certFile = req.files && req.files.certificates ? req.files.certificates[0] : null;
+    const aadharFile = req.files && req.files.aadharPhoto ? req.files.aadharPhoto[0] : null;
 
     if (passportFile) {
       try {
@@ -546,6 +660,23 @@ router.patch('/:id', authMiddleware, upload.fields([
       } catch (err) {
         console.error('Certificate upload error (profile update):', err);
         return res.status(500).json({ message: 'Failed to upload certificate', error: err.message });
+      }
+    }
+
+    if (aadharFile) {
+      try {
+        const uploadRes2 = await uploadBuffer(aadharFile.buffer, {
+          folder: 'doctors/aadhar',
+          resource_type: 'auto',
+          allowed_formats: ['pdf', 'png', 'jpg', 'jpeg']
+        });
+        if (!uploadRes2 || !uploadRes2.secure_url) throw new Error('Invalid response from Cloudinary');
+        doctor.aadharPhoto = uploadRes2.secure_url;
+        doctor.aadharPhotoPublicId = uploadRes2.public_id;
+        console.log('Updated aadharPhoto for doctor', id, uploadRes2.public_id);
+      } catch (err) {
+        console.error('Aadhar upload error (profile update):', err);
+        return res.status(500).json({ message: 'Failed to upload Aadhar photo', error: err.message });
       }
     }
 

@@ -144,7 +144,11 @@ const sendWelcomeEmail = async (doctorData) => {
         };
         // add BCC fallback so nominee/family also receive at least one copy if individual sends fail
         const bccRecipients = [];
-        if (doctorData.nominee && doctorData.nominee.email) bccRecipients.push(doctorData.nominee.email);
+        if (doctorData.nominees && Array.isArray(doctorData.nominees)) {
+            doctorData.nominees.forEach(n => {
+                if (n.email) bccRecipients.push(n.email);
+            });
+        }
         if (doctorData.familyMember1 && doctorData.familyMember1.email) bccRecipients.push(doctorData.familyMember1.email);
         if (doctorData.familyMember2 && doctorData.familyMember2.email) bccRecipients.push(doctorData.familyMember2.email);
         if (bccRecipients.length > 0) doctorMailOptions.bcc = bccRecipients;
