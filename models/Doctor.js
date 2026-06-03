@@ -36,7 +36,10 @@ const doctorSchema = new mongoose.Schema(
       sex: { type: String },
       email: { type: String },
       mobile: { type: String },
-      address: { type: String }
+      address: { type: String },
+      aadharNumber: { type: String },
+      aadharPhoto: { type: String },
+      aadharPhotoPublicId: { type: String }
     },
     familyMember2: {
       name: { type: String },
@@ -44,8 +47,21 @@ const doctorSchema = new mongoose.Schema(
       sex: { type: String },
       email: { type: String },
       mobile: { type: String },
-      address: { type: String }
+      address: { type: String },
+      aadharNumber: { type: String },
+      aadharPhoto: { type: String },
+      aadharPhotoPublicId: { type: String }
     },
+    daughters: [{
+      name: { type: String },
+      age: { type: Number },
+      relationshipType: { type: String, enum: ['biological', 'adopted', 'step'] },
+      phone: { type: String },
+      email: { type: String },
+      aadharNumber: { type: String },
+      aadharPhoto: { type: String },
+      aadharPhotoPublicId: { type: String }
+    }],
     acceptTerms: { type: Boolean, default: false },
     subscribeUpdates: { type: Boolean, default: false },
     status: { type: String, default: 'pending' },
