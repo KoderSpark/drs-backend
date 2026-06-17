@@ -28,7 +28,10 @@ const doctorSchema = new mongoose.Schema(
       bankAccountNumber: { type: String, required: true },
       ifscCode: { type: String, required: true },
       bankHolderName: { type: String, required: true },
-      percentage: { type: Number, required: true, default: 100 }
+      percentage: { type: Number, required: true, default: 100 },
+      aadharNumber: { type: String },
+      aadharPhoto: { type: String },
+      aadharPhotoPublicId: { type: String }
     }],
     familyMember1: {
       name: { type: String },

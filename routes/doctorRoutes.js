@@ -18,7 +18,10 @@ const uploadFields = upload.fields([
   { name: 'daughterAadharPhoto_1', maxCount: 1 },
   { name: 'daughterAadharPhoto_2', maxCount: 1 },
   { name: 'daughterAadharPhoto_3', maxCount: 1 },
-  { name: 'daughterAadharPhoto_4', maxCount: 1 }
+  { name: 'daughterAadharPhoto_4', maxCount: 1 },
+  { name: 'nomineeAadharPhoto_0', maxCount: 1 },
+  { name: 'nomineeAadharPhoto_1', maxCount: 1 },
+  { name: 'nomineeAadharPhoto_2', maxCount: 1 }
 ]);
 
 // Public Routes

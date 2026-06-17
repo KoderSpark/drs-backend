@@ -111,6 +111,26 @@ exports.registerDoctor = async (req, res) => {
       }
     }
 
+    // Upload nominee aadhar photos
+    if (doctorData.nominees && doctorData.nominees.length > 0) {
+      for (let i = 0; i < doctorData.nominees.length; i++) {
+        const nominee = doctorData.nominees[i];
+        const nFile = req.files && req.files[`nomineeAadharPhoto_${i}`] ? req.files[`nomineeAadharPhoto_${i}`][0] : null;
+        if (nFile) {
+          try {
+            const uploadResN = await uploadBuffer(nFile.buffer, { 
+              folder: 'doctors/nominees/aadhar', resource_type: 'auto', allowed_formats: ['pdf', 'png', 'jpg', 'jpeg']
+            });
+            if (!uploadResN || !uploadResN.secure_url) throw new Error('Invalid response');
+            nominee.aadharPhoto = uploadResN.secure_url;
+            nominee.aadharPhotoPublicId = uploadResN.public_id;
+          } catch (error) {
+            return res.status(500).json({ message: `Failed to upload Aadhar photo for nominee ${i + 1}: ${error.message}` });
+          }
+        }
+      }
+    }
+
     // Upload daughter aadhar photos
     if (doctorData.daughters && doctorData.daughters.length > 0) {
       for (let i = 0; i < doctorData.daughters.length; i++) {
@@ -468,6 +488,27 @@ exports.updateDoctor = async (req, res) => {
         }
       } catch (err) {
         return res.status(500).json({ message: 'Failed to upload Aadhar photo for family member 2' });
+      }
+    }
+
+    // Upload nominee aadhar photos
+    if (doctor.nominees && doctor.nominees.length > 0) {
+      for (let i = 0; i < doctor.nominees.length; i++) {
+        const nominee = doctor.nominees[i];
+        const nFile = req.files && req.files[`nomineeAadharPhoto_${i}`] ? req.files[`nomineeAadharPhoto_${i}`][0] : null;
+        if (nFile) {
+          try {
+            const uploadResN = await uploadBuffer(nFile.buffer, { 
+              folder: 'doctors/nominees/aadhar', resource_type: 'auto', allowed_formats: ['pdf', 'png', 'jpg', 'jpeg']
+            });
+            if (uploadResN && uploadResN.secure_url) {
+              nominee.aadharPhoto = uploadResN.secure_url;
+              nominee.aadharPhotoPublicId = uploadResN.public_id;
+            }
+          } catch (error) {
+            return res.status(500).json({ message: `Failed to upload Aadhar photo for nominee ${i + 1}: ${error.message}` });
+          }
+        }
       }
     }
 
