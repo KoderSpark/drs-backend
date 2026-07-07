@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const Doctor = require('../models/Doctor');
+const Payment = require('../models/Payment');
 const generateToken = require('../utils/generateToken');
 const { sendWelcomeEmail } = require('../utils/emailService');
 const { uploadBuffer } = require('../utils/cloudinaryUpload');
@@ -16,15 +17,21 @@ exports.registerDoctor = async (req, res) => {
     const {
       name, age, sex, qualification, phone, alternateMobile, email, password,
       houseAddress, clinicAddress, aadharNumber, nominees, familyMember1,
-      familyMember2, daughters, acceptTerms, subscribeUpdates
+      familyMember2, daughters, acceptTerms, subscribeUpdates,
+      paymentAmount, paymentDate, paymentReference
     } = req.body;
 
     const passportFile = req.files && req.files.passportPhoto ? req.files.passportPhoto[0] : null;
     const certFile = req.files && req.files.certificates ? req.files.certificates[0] : null;
     const aadharFile = req.files && req.files.aadharPhoto ? req.files.aadharPhoto[0] : null;
+    const paymentProofFile = req.files && req.files.paymentProof ? req.files.paymentProof[0] : null;
 
     if (!name || !phone || !email || !password || !aadharNumber || !aadharFile) {
       return res.status(400).json({ message: 'name, phone, email, password, aadharNumber, and aadharPhoto are required' });
+    }
+
+    if (!paymentAmount || !paymentDate || !paymentReference || !paymentProofFile) {
+      return res.status(400).json({ message: 'Payment details and payment proof screenshot are required' });
     }
 
     const existing = await Doctor.findOne({ $or: [{ email }, { phone }] });
@@ -187,6 +194,37 @@ exports.registerDoctor = async (req, res) => {
 
     try {
       const doctor = await Doctor.create(doctorData);
+
+      // Upload payment proof
+      let paymentProofUrl = '';
+      let paymentProofPublicId = '';
+      try {
+        const uploadResP = await uploadBuffer(paymentProofFile.buffer, { 
+          folder: 'payments', resource_type: 'auto', allowed_formats: ['pdf', 'png', 'jpg', 'jpeg']
+        });
+        if (!uploadResP || !uploadResP.secure_url) throw new Error('Invalid response');
+        paymentProofUrl = uploadResP.secure_url;
+        paymentProofPublicId = uploadResP.public_id;
+      } catch (error) {
+        // We log the error but still proceed since the doctor was created. Ideally this should be a transaction.
+        console.error('Failed to upload payment proof:', error);
+      }
+
+      // Create Payment record
+      try {
+        await Payment.create({
+          doctorId: doctor._id,
+          amount: parseFloat(paymentAmount) || 365,
+          date: new Date(paymentDate),
+          referenceNumber: paymentReference,
+          paymentProof: paymentProofUrl,
+          paymentProofPublicId: paymentProofPublicId,
+          status: 'pending'
+        });
+      } catch (error) {
+        console.error('Failed to create payment record:', error);
+      }
+
       const token = generateToken({ id: doctor._id, role: 'doctor' });
 
       const doctorObj = doctor.toObject ? doctor.toObject() : doctor;
@@ -203,7 +241,7 @@ exports.registerDoctor = async (req, res) => {
       return res.status(201).json({
         success: true,
         data: {
-          _id: doctor._id, name: doctor.name, phone: doctor.phone, email: doctor.email, token
+          _id: doctor._id, name: doctor.name, phone: doctor.phone, email: doctor.email
         }
       });
     } catch (dbError) {
@@ -223,6 +261,11 @@ exports.loginDoctor = async (req, res) => {
     if (!email || !password) return res.status(400).json({ message: 'email and password are required' });
     const doctor = await Doctor.findOne({ email });
     if (!doctor) return res.status(401).json({ message: 'Invalid credentials' });
+    
+    if (doctor.status === 'pending') {
+      return res.status(403).json({ message: 'Waiting for your approval' });
+    }
+
     const isMatch = await bcrypt.compare(password, doctor.passwordHash);
     if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
     const token = generateToken({ id: doctor._id, role: 'doctor' });

@@ -9,6 +9,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 const uploadFields = upload.fields([
+  { name: 'paymentProof', maxCount: 1 },
   { name: 'passportPhoto', maxCount: 1 },
   { name: 'certificates', maxCount: 1 },
   { name: 'aadharPhoto', maxCount: 1 },

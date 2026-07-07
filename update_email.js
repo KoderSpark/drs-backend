@@ -19,7 +19,7 @@ const oldNomineeLogic = `        // Send email to nominee if exists and has emai
         if (doctorData.nominee && doctorData.nominee.email) {
             console.log('Nominee contact found, sending email to:', doctorData.nominee);
             const nomineeMailOptions = {
-                from: \`Doctors Community <\${process.env.EMAIL_USER || 'syntaxsquadfinalyearproject@gmail.com'}>\`,
+                from: \`Doctors Community <\${process.env.FROM_EMAIL || process.env.EMAIL_USER || 'syntaxsquadfinalyearproject@gmail.com'}>\`,
                 to: doctorData.nominee.email,
                 subject: isUpdate ? updateSubject : 'Doctor Registration Notification - Doctors Community',
                 html: isUpdate ? updateHtml : \`
@@ -90,7 +90,7 @@ const newNomineeLogic = `        // Send email to all nominees
                 if (!nominee.email) continue;
                 console.log('Nominee contact found, sending email to:', nominee);
                 const nomineeMailOptions = {
-                    from: \`Doctors Community <\${process.env.EMAIL_USER || 'syntaxsquadfinalyearproject@gmail.com'}>\`,
+                    from: \`Doctors Community <\${process.env.FROM_EMAIL || process.env.EMAIL_USER || 'syntaxsquadfinalyearproject@gmail.com'}>\`,
                     to: nominee.email,
                     subject: isUpdate ? updateSubject : 'Doctor Registration Notification - Doctors Community',
                     html: isUpdate ? updateHtml : \`

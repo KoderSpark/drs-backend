@@ -1,6 +1,14 @@
-const sgMail = require('@sendgrid/mail');
+const nodemailer = require('nodemailer');
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.sendgrid.net',
+  port: parseInt(process.env.SMTP_PORT || '587', 10),
+  secure: process.env.SMTP_PORT === '465',
+  auth: {
+    user: process.env.SMTP_USER || 'apikey',
+    pass: process.env.SMTP_PASS || process.env.SENDGRID_API_KEY
+  }
+});
 
 // Helper to sleep
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -11,7 +19,7 @@ async function sendWithRetry(mailOptions, maxAttempts = 3) {
     let lastErr;
     while (++attempt <= maxAttempts) {
         try {
-            const info = await sgMail.send(mailOptions);
+            const info = await transporter.sendMail(mailOptions);
             console.log(`Email send attempt ${attempt} successful for ${mailOptions.to}`);
             return info;
         } catch (err) {
@@ -47,7 +55,7 @@ const sendWelcomeEmail = async (doctorData) => {
 
         // Send email to doctor
         const doctorMailOptions = {
-            from: `Doctors Community <${process.env.EMAIL_USER || 'syntaxsquadfinalyearproject@gmail.com'}>`,
+            from: `Doctors Community <${process.env.FROM_EMAIL || process.env.EMAIL_USER || 'syntaxsquadfinalyearproject@gmail.com'}>`,
             to: doctorData.email,
             subject: isUpdate ? updateSubject : 'Welcome to Doctors Community',
             html: isUpdate ? updateHtml : `
@@ -165,7 +173,7 @@ const sendWelcomeEmail = async (doctorData) => {
         if (doctorData.nominee && doctorData.nominee.email) {
             console.log('Nominee contact found, sending email to:', doctorData.nominee);
             const nomineeMailOptions = {
-                from: `Doctors Community <${process.env.EMAIL_USER || 'syntaxsquadfinalyearproject@gmail.com'}>`,
+                from: `Doctors Community <${process.env.FROM_EMAIL || process.env.EMAIL_USER || 'syntaxsquadfinalyearproject@gmail.com'}>`,
                 to: doctorData.nominee.email,
                 subject: isUpdate ? updateSubject : 'Doctor Registration Notification - Doctors Community',
                 html: isUpdate ? updateHtml : `
@@ -234,7 +242,7 @@ const sendWelcomeEmail = async (doctorData) => {
         if (doctorData.familyMember1 && doctorData.familyMember1.email) {
             console.log('Family member 1 contact found, sending email to:', doctorData.familyMember1);
             const familyMember1MailOptions = {
-                from: `Doctors Community <${process.env.EMAIL_USER || 'syntaxsquadfinalyearproject@gmail.com'}>`,
+                from: `Doctors Community <${process.env.FROM_EMAIL || process.env.EMAIL_USER || 'syntaxsquadfinalyearproject@gmail.com'}>`,
                 to: doctorData.familyMember1.email,
                 subject: isUpdate ? updateSubject : 'Doctor Registration Notification - Doctors Community',
                 html: isUpdate ? updateHtml : `
@@ -303,7 +311,7 @@ const sendWelcomeEmail = async (doctorData) => {
         if (doctorData.familyMember2 && doctorData.familyMember2.email) {
             console.log('Family member 2 contact found, sending email to:', doctorData.familyMember2);
             const familyMember2MailOptions = {
-                from: `Doctors Community <${process.env.EMAIL_USER || 'syntaxsquadfinalyearproject@gmail.com'}>`,
+                from: `Doctors Community <${process.env.FROM_EMAIL || process.env.EMAIL_USER || 'syntaxsquadfinalyearproject@gmail.com'}>`,
                 to: doctorData.familyMember2.email,
                 subject: isUpdate ? updateSubject : 'Doctor Registration Notification - Doctors Community',
                 html: isUpdate ? updateHtml : `
