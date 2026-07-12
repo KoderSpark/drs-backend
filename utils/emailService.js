@@ -1,25 +1,17 @@
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.sendgrid.net',
-  port: parseInt(process.env.SMTP_PORT || '587', 10),
-  secure: process.env.SMTP_PORT === '465',
-  auth: {
-    user: process.env.SMTP_USER || 'apikey',
-    pass: process.env.SMTP_PASS || process.env.SENDGRID_API_KEY
-  }
-});
+sgMail.setApiKey(process.env.SMTP_PASS || process.env.SENDGRID_API_KEY);
 
 // Helper to sleep
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Send with retry/backoff for transient network errors
+// Send with retry/backoff for transient network errors using SendGrid Web API (Bypasses Render SMTP Block)
 async function sendWithRetry(mailOptions, maxAttempts = 3) {
     let attempt = 0;
     let lastErr;
     while (++attempt <= maxAttempts) {
         try {
-            const info = await transporter.sendMail(mailOptions);
+            const info = await sgMail.send(mailOptions);
             console.log(`Email send attempt ${attempt} successful for ${mailOptions.to}`);
             return info;
         } catch (err) {
