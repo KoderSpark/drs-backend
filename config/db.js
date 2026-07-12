@@ -27,7 +27,16 @@ const resolveSrvUri = (srvUri) => {
   });
 };
 
+let cached = global.mongoose;
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
+
 const connectDB = async () => {
+  if (cached.conn) {
+    return cached.conn;
+  }
+
   try {
     const MONGO_URI =
       process.env.MONGODB_URI ||
@@ -38,12 +47,11 @@ const connectDB = async () => {
 
     if (!MONGO_URI) {
       console.error('Missing MongoDB connection string. Set MONGODB_URI in your .env file.');
-      return; // Do not crash the app, just return
+      return; 
     }
 
     let connectionUri = MONGO_URI;
 
-    // If SRV URI, resolve via Google DNS to get real host addresses
     // Skip this on Vercel because Vercel blocks custom DNS resolvers on port 53
     if (MONGO_URI.startsWith('mongodb+srv://') && !process.env.VERCEL) {
       try {
@@ -56,17 +64,25 @@ const connectDB = async () => {
       }
     }
 
-    await mongoose.connect(connectionUri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 10000,
-      family: 4,
-    });
+    if (!cached.promise) {
+      console.log('Establishing new MongoDB connection...');
+      cached.promise = mongoose.connect(connectionUri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        serverSelectionTimeoutMS: 10000,
+        family: 4,
+      }).then((mongoose) => {
+        return mongoose;
+      });
+    }
 
+    cached.conn = await cached.promise;
     console.log('MongoDB connected');
+    return cached.conn;
   } catch (err) {
     console.error('MongoDB connection error:', err.message);
-    // Remove process.exit(1) as it crashes the Vercel serverless function
+    cached.promise = null; // Reset promise on error so it can retry
+    throw err;
   }
 };
 

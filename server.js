@@ -9,9 +9,17 @@ dotenv.config();
 
 const connectDB = require('./config/db');
 
-connectDB();
-
 const app = express();
+
+// Await DB connection before handling any requests (Serverless best practice)
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    res.status(500).json({ error: 'Database connection failed' });
+  }
+});
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
