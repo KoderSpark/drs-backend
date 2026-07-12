@@ -22,8 +22,11 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Images are stored in Cloudinary when configured; local /uploads is a fallback when Cloudinary isn't configured
 
-app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
+app.get('/', (req, res) => {
+  res.send('DRS Welfare API is running. Access endpoints via /api/...');
+});
 
+app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 app.use('/api/doctors', require('./routes/doctorRoutes'));
 app.use('/api/contacts', require('./routes/contactRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
@@ -32,4 +35,8 @@ app.use('/api/visitor', require('./routes/visitorRoutes'));
 app.use('/api/payments', require('./routes/paymentRoutes'));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+if (require.main === module) {
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
+
+module.exports = app;

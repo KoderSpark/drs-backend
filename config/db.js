@@ -37,15 +37,15 @@ const connectDB = async () => {
       process.env.MONGO_URL;
 
     if (!MONGO_URI) {
-      throw new Error(
-        'Missing MongoDB connection string. Set MONGODB_URI in your .env file.'
-      );
+      console.error('Missing MongoDB connection string. Set MONGODB_URI in your .env file.');
+      return; // Do not crash the app, just return
     }
 
     let connectionUri = MONGO_URI;
 
     // If SRV URI, resolve via Google DNS to get real host addresses
-    if (MONGO_URI.startsWith('mongodb+srv://')) {
+    // Skip this on Vercel because Vercel blocks custom DNS resolvers on port 53
+    if (MONGO_URI.startsWith('mongodb+srv://') && !process.env.VERCEL) {
       try {
         console.log('Resolving MongoDB SRV record via Google DNS...');
         connectionUri = await resolveSrvUri(MONGO_URI);
@@ -66,7 +66,7 @@ const connectDB = async () => {
     console.log('MongoDB connected');
   } catch (err) {
     console.error('MongoDB connection error:', err.message);
-    process.exit(1);
+    // Remove process.exit(1) as it crashes the Vercel serverless function
   }
 };
 
