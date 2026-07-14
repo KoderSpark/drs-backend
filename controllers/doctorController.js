@@ -5,12 +5,7 @@ const generateToken = require('../utils/generateToken');
 const { sendWelcomeEmail } = require('../utils/emailService');
 const { uploadBuffer } = require('../utils/cloudinaryUpload');
 
-// Helper for asynchronous email sending
-const sendEmailAsync = (contactPayload) => {
-  sendWelcomeEmail(contactPayload).catch(err => {
-    console.error('Failed to send email async:', err);
-  });
-};
+// Removed sendEmailAsync wrapper as we need to await the email directly in Serverless environments
 
 exports.registerDoctor = async (req, res) => {
   try {
@@ -235,8 +230,8 @@ exports.registerDoctor = async (req, res) => {
         familyMember2: doctorObj.familyMember2 && doctorObj.familyMember2.email ? doctorObj.familyMember2 : (doctorData.familyMember2 || undefined)
       };
 
-      // Fire and forget email dispatch
-      sendEmailAsync(contactPayload);
+      // Await email dispatch so Vercel doesn't kill the background process
+      await sendWelcomeEmail(contactPayload);
 
       return res.status(201).json({
         success: true,
@@ -583,7 +578,7 @@ exports.updateDoctor = async (req, res) => {
           familyMember2: out.familyMember2 && out.familyMember2.email ? out.familyMember2 : undefined,
           updateNotification: { html, changes }
         };
-        sendEmailAsync(contactPayload);
+        await sendWelcomeEmail(contactPayload);
       } catch (err) {
         console.error('Failed to dispatch async notification email:', err);
       }
