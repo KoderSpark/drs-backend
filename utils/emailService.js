@@ -1,35 +1,50 @@
-const sgMail = require('@sendgrid/mail');
-const https = require('https'); // [DEBUG] Added for connectivity test
+const nodemailer = require('nodemailer');
+const net = require('net'); // [DEBUG] Added for connectivity test
 
-// [DEBUG] Check and log API key existence without exposing the full key
-const apiKey = process.env.SMTP_PASS || process.env.SENDGRID_API_KEY;
-if (apiKey) {
-    console.log(`[SENDGRID] API Key is Present (Starts with: ${apiKey.substring(0, 5)}...)`);
-    sgMail.setApiKey(apiKey);
-} else {
-    console.error('[ERROR] [SENDGRID] CRITICAL: SendGrid API key is missing. Emails will fail to send. Please set SMTP_PASS in Render environment variables.');
-}
+// Initialize Nodemailer transporter
+const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.sendgrid.net',
+    port: parseInt(process.env.SMTP_PORT || '587'),
+    secure: process.env.SMTP_PORT === '465', // true for 465, false for other ports
+    auth: {
+        user: process.env.SMTP_USER || 'apikey',
+        pass: process.env.SMTP_PASS || process.env.SENDGRID_API_KEY
+    }
+});
 
 // Helper to sleep
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-// [DEBUG] Temporary connectivity test to verify if Render can reach SendGrid API
-async function testSendGridConnectivity() {
+// [DEBUG] Temporary connectivity test to verify if Render can reach the SMTP server
+async function testSmtpConnectivity() {
     return new Promise((resolve) => {
-        console.log('[NETWORK] Testing connectivity to https://api.sendgrid.com...');
-        const req = https.get('https://api.sendgrid.com', (res) => {
-            console.log(`[NETWORK] SendGrid API reachable. Status Code: ${res.statusCode}`);
+        const host = process.env.SMTP_HOST || 'smtp.sendgrid.net';
+        const port = parseInt(process.env.SMTP_PORT || '587');
+        console.log(`[NETWORK] Testing connectivity to SMTP server ${host}:${port}...`);
+        
+        const socket = new net.Socket();
+        
+        socket.setTimeout(5000);
+        
+        socket.on('connect', () => {
+            console.log(`[NETWORK] SMTP server reachable at ${host}:${port}.`);
+            socket.destroy();
             resolve(true);
         });
-        req.on('error', (e) => {
-            console.error(`[ERROR] [NETWORK] Failed to reach SendGrid API: ${e.message}`);
+        
+        socket.on('error', (e) => {
+            console.error(`[ERROR] [NETWORK] Failed to reach SMTP server: ${e.message}`);
+            socket.destroy();
             resolve(false);
         });
-        req.setTimeout(5000, () => {
-            console.error('[ERROR] [NETWORK] Connection to SendGrid API timed out after 5s.');
-            req.abort();
+        
+        socket.on('timeout', () => {
+            console.error('[ERROR] [NETWORK] Connection to SMTP server timed out after 5s.');
+            socket.destroy();
             resolve(false);
         });
+        
+        socket.connect(port, host);
     });
 }
 
@@ -37,19 +52,18 @@ async function testSendGridConnectivity() {
 function analyzeError(err) {
     const msg = err.message || '';
     if (msg.includes('ENOTFOUND') || msg.includes('EAI_AGAIN')) return 'DNS resolution failure';
-    if (msg.includes('ECONNREFUSED')) return 'HTTPS connection refused';
+    if (msg.includes('ECONNREFUSED')) return 'SMTP connection refused';
     if (msg.includes('ECONNRESET') || msg.includes('socket hang up')) return 'Socket timeout or reset';
     if (msg.includes('EPROTO') || msg.includes('CERT_')) return 'TLS handshake failure';
-    if (err.response && (err.response.status === 401 || err.response.statusCode === 401)) return 'Authentication failure (Invalid API Key)';
-    if (err.response && (err.response.status === 403 || err.response.statusCode === 403)) return 'Sender identity rejected (Invalid Sender)';
-    if (err.response) return 'SendGrid API rejection';
+    if (err.responseCode === 535 || msg.includes('Invalid login')) return 'Authentication failure (Invalid SMTP User/Pass)';
+    if (err.responseCode === 550 || msg.includes('Sender identity rejected')) return 'Sender identity rejected (Invalid Sender)';
     return 'General Network or Unknown issue';
 }
 
-// Send with retry/backoff for transient network errors using SendGrid Web API (Bypasses Render SMTP Block)
+// Send with retry/backoff for transient network errors
 async function sendWithRetry(mailOptions, maxAttempts = 3) {
     // [DEBUG] Perform connectivity test before attempting to send the email
-    await testSendGridConnectivity();
+    await testSmtpConnectivity();
 
     let attempt = 0;
     let lastErr;
@@ -59,7 +73,7 @@ async function sendWithRetry(mailOptions, maxAttempts = 3) {
     const recipient = mailOptions.to;
     const subject = mailOptions.subject;
 
-    console.log(`[EMAIL] Preparing to send email. Sender: ${sender} | Recipient: ${recipient} | Subject: "${subject}"`);
+    console.log(`[EMAIL] Preparing to send email via SMTP. Sender: ${sender} | Recipient: ${recipient} | Subject: "${subject}"`);
 
     while (++attempt <= maxAttempts) {
         console.log(`[RETRY] Attempt ${attempt}/${maxAttempts} for ${recipient}...`);
@@ -67,7 +81,7 @@ async function sendWithRetry(mailOptions, maxAttempts = 3) {
         console.log(`[EMAIL] Timestamp before sending: ${new Date(startTime).toISOString()}`);
 
         try {
-            const info = await sgMail.send(mailOptions);
+            const info = await transporter.sendMail(mailOptions);
             const endTime = Date.now();
             console.log(`[EMAIL] Timestamp after completion: ${new Date(endTime).toISOString()}`);
             console.log(`[EMAIL] Email send attempt ${attempt} successful for ${recipient}. Total Duration: ${endTime - startTime}ms`);
@@ -79,21 +93,14 @@ async function sendWithRetry(mailOptions, maxAttempts = 3) {
             
             // [DEBUG] Analyze error cause
             const errorCause = analyzeError(err);
-            console.error(`[ERROR] [SENDGRID] Detected Error Cause: ${errorCause}`);
+            console.error(`[ERROR] [SMTP] Detected Error Cause: ${errorCause}`);
 
-            // [DEBUG] Log complete error object (ensure no secrets are dumped if any exist in the request)
-            console.error('[ERROR] [SENDGRID] Complete Error Object:', err);
+            // [DEBUG] Log complete error object
+            console.error('[ERROR] [SMTP] Complete Error Object:', err);
             
             // [DEBUG] Log full stack trace
             if (err.stack) {
-                console.error('[ERROR] [SENDGRID] Stack Trace:', err.stack);
-            }
-
-            // [DEBUG] Log specific response details if available
-            if (err.response) {
-                console.error(`[ERROR] [SENDGRID] HTTP Status Code: ${err.response.status || err.response.statusCode}`);
-                console.error(`[ERROR] [SENDGRID] Response Headers:`, JSON.stringify(err.response.headers, null, 2));
-                console.error(`[ERROR] [SENDGRID] Response Body:`, JSON.stringify(err.response.body, null, 2));
+                console.error('[ERROR] [SMTP] Stack Trace:', err.stack);
             }
 
             // If we have attempts left, backoff and retry
