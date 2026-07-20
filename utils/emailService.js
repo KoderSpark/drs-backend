@@ -138,94 +138,64 @@ const sendWelcomeEmail = async (doctorData) => {
             to: doctorData.email,
             subject: isUpdate ? updateSubject : 'Welcome to Doctors Community',
             html: isUpdate ? updateHtml : `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <h2 style="color: #2D3748;">Welcome to Doctors Community</h2>
-                    <p style="color: #4A5568; font-size: 16px;">Dear Dr. ${doctorData.name},</p>
-                    <p style="color: #4A5568; font-size: 16px;">
-                        Thank you for registering with the Doctors Community. We're delighted to have you as a member
-                        of our growing medical professional network.
-                    </p>
-                    <p style="color: #4A5568; font-size: 16px;">
-                        Your registration has been successfully completed. You can now log in to your account
-                        and start using our platform's features.
-                    </p>
-                    
-                    <div style="margin: 30px 0; padding: 20px; background-color: #E6FFFA; border-radius: 8px;">
-                        <h3 style="color: #234E52; margin-top: 0;">Important: HEALTH CARE PROFESSIONALS SELF SUPPORT SCHEME (HCPSST) Terms and Conditions</h3>
-                        <p style="color: #234E52; margin: 10px 0;">
-                            By creating an account with Doctors Community, you agree to the following comprehensive terms and conditions:
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #F0F8FF; padding: 25px; border-radius: 12px; border: 1px solid #D2E8FC;">
+                    <div style="background-color: #FFFFFF; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                        <h2 style="color: #1A365D; margin-top: 0; font-size: 24px; border-bottom: 2px solid #EBF8FF; padding-bottom: 15px;">Welcome to Doctors Community</h2>
+                        <p style="color: #2D3748; font-size: 16px; line-height: 1.6;">Dear Dr. ${doctorData.name},</p>
+                        <p style="color: #2D3748; font-size: 16px; line-height: 1.6;">
+                            Thank you for registering with the Doctors Community. We're delighted to have you as a member
+                            of our growing medical professional network.
+                        </p>
+                        <p style="color: #2D3748; font-size: 16px; line-height: 1.6;">
+                            Your registration has been successfully completed. You can now log in to your account
+                            and start using our platform's features.
                         </p>
                         
-                        <div style="color: #234E52; margin: 15px 0;">
-                            <h4 style="color: #2D3748; margin: 10px 0;">About HCPSST</h4>
-                            <p style="margin: 5px 0;">HEALTH CARE PROFESSIONALS SELF SUPPORT SCHEME (HCPSST) was established for HEALTH CARE PROFESSIONALS and by HEALTH CARE PROFESSIONALS to support them. HCPSST is managed by the HEALTH CARE PROFESSIONALS TRUST.</p>
+                        <div style="margin: 30px 0; padding: 20px; background-color: #EBF8FF; border-radius: 8px; border-left: 4px solid #3182CE;">
+                            <h3 style="color: #1A365D; margin-top: 0; font-size: 18px;">Important: Rules &amp; Bye-Laws of Professionals Welfare Trust (PWT)</h3>
+                            <p style="color: #2B6CB0; font-weight: bold; margin: 10px 0;">
+                                Please refer to the complete and official By-Laws of the Trust.
+                            </p>
+                            <p style="color: #2D3748; margin: 10px 0; font-size: 14px; line-height: 1.6;">
+                                By creating an account with Doctors Community, you agree to govern your membership, conduct, and mutual assistance in accordance with the official <strong>Rules &amp; Bye-Laws of Professionals Welfare Trust (PWT)</strong>.
+                            </p>
+                            
+                            <p style="color: #2D3748; margin: 10px 0; font-size: 14px; line-height: 1.6;">
+                                For your convenience, here are key highlights from our By-Laws:
+                            </p>
+                            <ul style="margin: 10px 0; padding-left: 20px; color: #2D3748; font-size: 14px; line-height: 1.6;">
+                                <li style="margin: 5px 0;"><strong>Membership &amp; Dues:</strong> Doctors can voluntarily join after agreeing to terms. An annual membership fee is required to maintain valid status.</li>
+                                <li style="margin: 5px 0;"><strong>Mutual Support:</strong> Members voluntarily contribute directly to the nominee of a deceased member's family. The trust coordinates this process.</li>
+                                <li style="margin: 5px 0;"><strong>Lock-in Period:</strong> A standard lock-in period of 12 months/1 year applies to all types of members before benefits/assistance eligibility begins.</li>
+                                <li style="margin: 5px 0;"><strong>Official Copy:</strong> In case of any dispute or decision, only the official copy of the Rules &amp; Bye-Laws uploaded on our website will be valid.</li>
+                            </ul>
+                            <p style="color: #2D3748; margin: 15px 0 5px 0; font-size: 14px;">
+                                You can read the complete, detailed document here: 
+                                <a href="${process.env.FRONTEND_URL || 'https://drs-welfare.vercel.app'}/terms" style="color: #3182CE; font-weight: bold; text-decoration: underline;">Read Full Rules &amp; By-Laws</a>.
+                            </p>
                         </div>
-
-                        <div style="color: #234E52; margin: 15px 0;">
-                            <h4 style="color: #2D3748; margin: 10px 0;">Main Rules (For Members)</h4>
-                            <ol style="margin: 10px 0; padding-left: 20px;">
-                                <li style="margin: 5px 0;">To join the Health Care Professionals self support scheme, Doctors and Dentists can voluntarily join by registering through the website after agreeing to all the terms and conditions. Membership fee is charged yearly for joining the Health Care Professionals self support scheme.</li>
-                                <li style="margin: 5px 0;">To join the Health Care Professionals self support scheme, registration is mandatory by filling out the required information form. HCPSST has a rule since its inception: only those who cooperate will receive support. All that is required is to send support to the family of the deceased members.</li>
-                                <li style="margin: 5px 0;">The lock-in period for all types of members will be 12 months/1 year. Support will not be provided if a nominee is accused of suicide or murder, and in special circumstances, the final decision will be that of the HCPSST.</li>
-                                <li style="margin: 5px 0;">The HCPSST will be free to exercise its discretion in making decisions regarding calls for contributions, including conducting its own due diligence on legality or any other matters as deemed appropriate.</li>
-                                <li style="margin: 5px 0;">During or after the contribution, if a Doctor mistakenly sends an excess amount to the account of a nominee, the nominee will be required to return the funds to the Doctors/member's account upon presenting appropriate evidence.</li>
-                                <li style="margin: 5px 0;">Currently, it is mandatory to make all contributions to receive contributions. After becoming a member and completing all contributions after the lock-in period, it will be mandatory to upload the receipt by filling out the website/Google form as per the rules.</li>
-                                <li style="margin: 5px 0;">If a Doctor fails to cooperate after becoming a member or does not cooperate with anyone in the interim, they will no longer be a statutory member. Such members can activate their statutory status by contributing 100%.</li>
-                                <li style="margin: 5px 0;">If a member leaves the association once in a year, he can become legal again after paying all dues and contributions.</li>
-                                <li style="margin: 5px 0;">In the event of the death of more than one Doctor/member, assistance will be provided in the order of their death date. However, if two or more Doctors die on the same date, the Doctor with the highest percentage/average of assistance will be provided first, followed by the others.</li>
-                                <li style="margin: 5px 0;">In case of any dispute regarding the nominee, the State/Core Team will be free to take a decision after due scrutiny and provide assistance.</li>
-                                <li style="margin: 5px 0;">All information on the Telegram/WhatsApp/App is provided from time to time. Any member who does not receive information from the Telegram group will be held responsible.</li>
-                                <li style="margin: 5px 0;">Members will be able to get their queries answered through the helpline.</li>
-                                <li style="margin: 5px 0;">Any of the rules of HCPSST may be amended/changed at any time as per the need and requirement of the time.</li>
-                                <li style="margin: 5px 0;">Members make the contribution directly into the account of the nominee of the deceased families and hence no individual or member will have the right to raise any kind of judicial challenge.</li>
-                                <li style="margin: 5px 0;">HCPSST does not force or coerce any Doctor into becoming a member, members are given the option to become a member only after accepting the rules, any member can voluntarily dissociate himself at any time.</li>
-                                <li style="margin: 5px 0;">There is a yearly membership fee to join HCPSST. Any Doctor can become a member and contribute by agreeing to the terms and conditions and registering.</li>
-                                <li style="margin: 5px 0;">Upon becoming a member of HCPSST, it is mandatory to join the HCPSST Telegram group/WhatsApp group/Install HCPSST App as all official information will be provided through these only.</li>
-                                <li style="margin: 5px 0;">The HCPSST will be authorized to make decisions regarding members who submit forged/falsified receipts or act contrary to the rules during the collaboration. Such members may be terminated and denied benefits.</li>
-                            </ol>
+                        
+                        <div style="margin: 30px 0; padding: 20px; background-color: #F7FAFC; border-radius: 8px; border-left: 4px solid #4A5568;">
+                            <h3 style="color: #2D3748; margin-top: 0; font-size: 16px;">Next Steps</h3>
+                            <p style="color: #4A5568; margin: 10px 0; font-size: 14px; line-height: 1.6;">
+                                • Log in to your account to complete your profile<br>
+                                • Review your membership benefits and contribution schedule<br>
+                                • Connect with other medical professionals in our community<br>
+                                • Access exclusive resources and support services
+                            </p>
                         </div>
-
-                        <div style="color: #234E52; margin: 15px 0;">
-                            <h4 style="color: #2D3748; margin: 10px 0;">HCPSST Facilities</h4>
-                            <p style="margin: 5px 0;">The HCPSST will provide the following facilities to all the members from the amount received for Membership fee:</p>
-                            <ol style="margin: 10px 0; padding-left: 20px;">
-                                <li style="margin: 5px 0;">In the creation and operation of the website.</li>
-                                <li style="margin: 5px 0;">Developing and operating the app.</li>
-                                <li style="margin: 5px 0;">In providing SMS facility.</li>
-                                <li style="margin: 5px 0;">To have an office and a technical support that will provide you technical help.</li>
-                                <li style="margin: 5px 0;">In conducting on-site inspection.</li>
-                                <li style="margin: 5px 0;">In the campaign to connect maximum number of Doctors with HCPSST.</li>
-                                <li style="margin: 5px 0;">Use of new technology from time to time so that the process becomes transparent as well as easy.</li>
-                            </ol>
+                        
+                        <div style="margin: 30px 0; padding: 20px; background-color: #EBF8FF; border-radius: 8px; border: 1px solid #D2E8FC;">
+                            <p style="color: #2B6CB0; margin: 0; font-size: 14px;">
+                                If you have any questions or need assistance, please don't hesitate to contact us.
+                            </p>
                         </div>
-
-                        <div style="color: #234E52; margin: 15px 0; padding: 15px; background-color: #FEF5E7; border-radius: 5px; border-left: 4px solid #F6AD55;">
-                            <p style="margin: 5px 0;"><strong>Important Note:</strong> Members give their contribution directly to the nominee of the deceased Doctor, hence there will be no legal right to receive any contribution in return for the contribution given by you, it will completely depend on the wish of the members. The HCPSST will not be responsible in case the contribution is less or no more after the appeal by the team.</p>
-                            <p style="margin: 5px 0;">If someone joins by hiding facts or without fulfilling the eligibility criteria and gives contribution, then his claim will not be valid.</p>
-                            <p style="margin: 5px 0;"><strong>In case of any decision, only the copy of the rules uploaded on the website will be valid.</strong></p>
-                        </div>
-                    </div>
-                    
-                    <div style="margin: 30px 0; padding: 20px; background-color: #F7FAFC; border-radius: 8px; border-left: 4px solid #3182CE;">
-                        <h3 style="color: #2D3748; margin-top: 0;">Next Steps</h3>
-                        <p style="color: #4A5568; margin: 10px 0;">
-                            • Log in to your account to complete your profile<br>
-                            • Review your membership benefits and contribution schedule<br>
-                            • Connect with other medical professionals in our community<br>
-                            • Access exclusive resources and support services
+                        
+                        <p style="color: #4A5568; font-size: 15px; line-height: 1.6; margin-bottom: 0;">
+                            Best regards,<br>
+                            <strong>The Doctors Community Team</strong>
                         </p>
                     </div>
-                    
-                    <div style="margin: 30px 0; padding: 20px; background-color: #E6FFFA; border-radius: 8px;">
-                        <p style="color: #234E52; margin: 0;">
-                            If you have any questions or need assistance, please don't hesitate to contact us.
-                        </p>
-                    </div>
-                    
-                    <p style="color: #4A5568; font-size: 16px;">
-                        Best regards,<br>
-                        The Doctors Community Team
-                    </p>
                 </div>
             `
         };
@@ -256,55 +226,52 @@ const sendWelcomeEmail = async (doctorData) => {
                 to: doctorData.nominee.email,
                 subject: isUpdate ? updateSubject : 'Doctor Registration Notification - Doctors Community',
                 html: isUpdate ? updateHtml : `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                        <h2 style="color: #2D3748;">Doctor Registration Notification</h2>
-                        <p style="color: #4A5568; font-size: 16px;">Dear ${doctorData.nominee.name},</p>
-                        <p style="color: #4A5568; font-size: 16px;">
-                            This email is to inform you that Dr. ${doctorData.name} has registered with the Doctors Community
-                            and has listed you as their nominee.
-                        </p>
-                        <p style="color: #4A5568; font-size: 16px;">
-                            As a nominee, you will be kept informed about important updates and notifications
-                            related to Dr. ${doctorData.name}'s membership.
-                        </p>
-                        
-                        <div style="margin: 30px 0; padding: 20px; background-color: #E6FFFA; border-radius: 8px;">
-                            <h3 style="color: #234E52; margin-top: 0;">Important: HEALTH CARE PROFESSIONALS SELF SUPPORT SCHEME (HCPSST) Terms and Conditions</h3>
-                            <p style="color: #234E52; margin: 10px 0;">
-                                As a nominee, you should be aware of the following comprehensive terms and conditions:
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #F0F8FF; padding: 25px; border-radius: 12px; border: 1px solid #D2E8FC;">
+                        <div style="background-color: #FFFFFF; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                            <h2 style="color: #1A365D; margin-top: 0; font-size: 22px; border-bottom: 2px solid #EBF8FF; padding-bottom: 15px;">Doctor Registration Notification</h2>
+                            <p style="color: #2D3748; font-size: 16px; line-height: 1.6;">Dear ${doctorData.nominee.name},</p>
+                            <p style="color: #2D3748; font-size: 16px; line-height: 1.6;">
+                                This email is to inform you that Dr. ${doctorData.name} has registered with the Doctors Community
+                                and has listed you as their nominee.
+                            </p>
+                            <p style="color: #2D3748; font-size: 16px; line-height: 1.6;">
+                                As a nominee, you will be kept informed about important updates and notifications
+                                related to Dr. ${doctorData.name}'s membership.
                             </p>
                             
-                            <div style="color: #234E52; margin: 15px 0;">
-                                <h4 style="color: #2D3748; margin: 10px 0;">About HCPSST</h4>
-                                <p style="margin: 5px 0;">HEALTH CARE PROFESSIONALS SELF SUPPORT SCHEME (HCPSST) was established for HEALTH CARE PROFESSIONALS and by HEALTH CARE PROFESSIONALS to support them. HCPSST is managed by the HEALTH CARE PROFESSIONALS TRUST.</p>
+                            <div style="margin: 30px 0; padding: 20px; background-color: #EBF8FF; border-radius: 8px; border-left: 4px solid #3182CE;">
+                                <h3 style="color: #1A365D; margin-top: 0; font-size: 18px;">Important: Rules &amp; Bye-Laws of Professionals Welfare Trust (PWT)</h3>
+                                <p style="color: #2B6CB0; font-weight: bold; margin: 10px 0;">
+                                    Please refer to the complete and official By-Laws of the Trust.
+                                </p>
+                                <p style="color: #2D3748; margin: 10px 0; font-size: 14px; line-height: 1.6;">
+                                    As a nominee, you should be aware that the membership, assistance, and support are governed in accordance with the official <strong>Rules &amp; Bye-Laws of Professionals Welfare Trust (PWT)</strong>.
+                                </p>
+                                
+                                <p style="color: #2D3748; margin: 10px 0; font-size: 14px; line-height: 1.6;">
+                                    Key points for nominees:
+                                </p>
+                                <ul style="margin: 10px 0; padding-left: 20px; color: #2D3748; font-size: 14px; line-height: 1.6;">
+                                    <li style="margin: 5px 0;"><strong>Lock-in Period:</strong> A standard lock-in period of 12 months/1 year applies to all types of members before benefits/assistance eligibility begins.</li>
+                                    <li style="margin: 5px 0;"><strong>Mutual Contributions:</strong> Contributions are sent directly from members to the nominee's designated account in times of need.</li>
+                                    <li style="margin: 5px 0;"><strong>Official Copy:</strong> In case of any dispute or decision, only the official copy of the Rules &amp; Bye-Laws uploaded on our website will be valid.</li>
+                                </ul>
+                                <p style="color: #2D3748; margin: 15px 0 5px 0; font-size: 14px;">
+                                    You can read the complete, detailed document here: 
+                                    <a href="${process.env.FRONTEND_URL || 'https://drs-welfare.vercel.app'}/terms" style="color: #3182CE; font-weight: bold; text-decoration: underline;">Read Full Rules &amp; By-Laws</a>.
+                                </p>
                             </div>
-
-                            <div style="color: #234E52; margin: 15px 0;">
-                                <h4 style="color: #2D3748; margin: 10px 0;">Key Rules for Nominees</h4>
-                                <ol style="margin: 10px 0; padding-left: 20px;">
-                                    <li style="margin: 5px 0;">The lock-in period for all types of members will be 12 months/1 year. Support will not be provided if a nominee is accused of suicide or murder, and in special circumstances, the final decision will be that of the HCPSST.</li>
-                                    <li style="margin: 5px 0;">During or after the contribution, if a Doctor mistakenly sends an excess amount to the account of a nominee, the nominee will be required to return the funds to the Doctors/member's account upon presenting appropriate evidence.</li>
-                                    <li style="margin: 5px 0;">Members make the contribution directly into the account of the nominee of the deceased families and hence no individual or member will have the right to raise any kind of judicial challenge.</li>
-                                    <li style="margin: 5px 0;">In case of any dispute regarding the nominee, the State/Core Team will be free to take a decision after due scrutiny and provide assistance.</li>
-                                    <li style="margin: 5px 0;">All information on the Telegram/WhatsApp/App is provided from time to time. Any member who does not receive information from the Telegram group will be held responsible.</li>
-                                </ol>
+                            
+                            <div style="margin: 30px 0; padding: 20px; background-color: #EBF8FF; border-radius: 8px; border: 1px solid #D2E8FC;">
+                                <p style="color: #2B6CB0; margin: 0; font-size: 14px;">
+                                    If you have any questions or concerns, please don't hesitate to contact us.
+                                </p>
                             </div>
-
-                            <div style="color: #234E52; margin: 15px 0; padding: 15px; background-color: #FEF5E7; border-radius: 5px; border-left: 4px solid #F6AD55;">
-                                <p style="margin: 5px 0;"><strong>Important Note:</strong> Members give their contribution directly to the nominee of the deceased Doctor, hence there will be no legal right to receive any contribution in return for the contribution given by you, it will completely depend on the wish of the members. The HCPSST will not be responsible in case the contribution is less or no more after the appeal by the team.</p>
-                                <p style="margin: 5px 0;"><strong>In case of any decision, only the copy of the rules uploaded on the website will be valid.</strong></p>
-                            </div>
-                        </div>
-                        
-                        <div style="margin: 30px 0; padding: 20px; background-color: #E6FFFA; border-radius: 8px;">
-                            <p style="color: #234E52; margin: 0;">
-                                If you have any questions or concerns, please don't hesitate to contact us.
+                            <p style="color: #4A5568; font-size: 15px; line-height: 1.6; margin-bottom: 0;">
+                                Best regards,<br>
+                                <strong>The Doctors Community Team</strong>
                             </p>
                         </div>
-                        <p style="color: #4A5568; font-size: 16px;">
-                            Best regards,<br>
-                            The Doctors Community Team
-                        </p>
                     </div>
                 `
             };
@@ -325,55 +292,52 @@ const sendWelcomeEmail = async (doctorData) => {
                 to: doctorData.familyMember1.email,
                 subject: isUpdate ? updateSubject : 'Doctor Registration Notification - Doctors Community',
                 html: isUpdate ? updateHtml : `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                        <h2 style="color: #2D3748;">Doctor Registration Notification</h2>
-                        <p style="color: #4A5568; font-size: 16px;">Dear ${doctorData.familyMember1.name},</p>
-                        <p style="color: #4A5568; font-size: 16px;">
-                            This email is to inform you that Dr. ${doctorData.name} has registered with the Doctors Community
-                            and has listed you as a family member contact.
-                        </p>
-                        <p style="color: #4A5568; font-size: 16px;">
-                            As a registered family member, you will receive important notifications and updates
-                            related to Dr. ${doctorData.name}'s membership.
-                        </p>
-                        
-                        <div style="margin: 30px 0; padding: 20px; background-color: #E6FFFA; border-radius: 8px;">
-                            <h3 style="color: #234E52; margin-top: 0;">Important: HEALTH CARE PROFESSIONALS SELF SUPPORT SCHEME (HCPSST) Terms and Conditions</h3>
-                            <p style="color: #234E52; margin: 10px 0;">
-                                As a family member, you should be aware of the following comprehensive terms and conditions:
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #F0F8FF; padding: 25px; border-radius: 12px; border: 1px solid #D2E8FC;">
+                        <div style="background-color: #FFFFFF; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                            <h2 style="color: #1A365D; margin-top: 0; font-size: 22px; border-bottom: 2px solid #EBF8FF; padding-bottom: 15px;">Doctor Registration Notification</h2>
+                            <p style="color: #2D3748; font-size: 16px; line-height: 1.6;">Dear ${doctorData.familyMember1.name},</p>
+                            <p style="color: #2D3748; font-size: 16px; line-height: 1.6;">
+                                This email is to inform you that Dr. ${doctorData.name} has registered with the Doctors Community
+                                and has listed you as a family member contact.
+                            </p>
+                            <p style="color: #2D3748; font-size: 16px; line-height: 1.6;">
+                                As a registered family member, you will receive important notifications and updates
+                                related to Dr. ${doctorData.name}'s membership.
                             </p>
                             
-                            <div style="color: #234E52; margin: 15px 0;">
-                                <h4 style="color: #2D3748; margin: 10px 0;">About HCPSST</h4>
-                                <p style="margin: 5px 0;">HEALTH CARE PROFESSIONALS SELF SUPPORT SCHEME (HCPSST) was established for HEALTH CARE PROFESSIONALS and by HEALTH CARE PROFESSIONALS to support them. HCPSST is managed by the HEALTH CARE PROFESSIONALS TRUST.</p>
+                            <div style="margin: 30px 0; padding: 20px; background-color: #EBF8FF; border-radius: 8px; border-left: 4px solid #3182CE;">
+                                <h3 style="color: #1A365D; margin-top: 0; font-size: 18px;">Important: Rules &amp; Bye-Laws of Professionals Welfare Trust (PWT)</h3>
+                                <p style="color: #2B6CB0; font-weight: bold; margin: 10px 0;">
+                                    Please refer to the complete and official By-Laws of the Trust.
+                                </p>
+                                <p style="color: #2D3748; margin: 10px 0; font-size: 14px; line-height: 1.6;">
+                                    As a family member contact, you should be aware that the membership, assistance, and support are governed in accordance with the official <strong>Rules &amp; Bye-Laws of Professionals Welfare Trust (PWT)</strong>.
+                                </p>
+                                
+                                <p style="color: #2D3748; margin: 10px 0; font-size: 14px; line-height: 1.6;">
+                                    Key points for family members:
+                                </p>
+                                <ul style="margin: 10px 0; padding-left: 20px; color: #2D3748; font-size: 14px; line-height: 1.6;">
+                                    <li style="margin: 5px 0;"><strong>Lock-in Period:</strong> A standard lock-in period of 12 months/1 year applies to all types of members before benefits/assistance eligibility begins.</li>
+                                    <li style="margin: 5px 0;"><strong>Mutual Contributions:</strong> Contributions are sent directly from members to the nominee's designated account in times of need.</li>
+                                    <li style="margin: 5px 0;"><strong>Official Copy:</strong> In case of any dispute or decision, only the official copy of the Rules &amp; Bye-Laws uploaded on our website will be valid.</li>
+                                </ul>
+                                <p style="color: #2D3748; margin: 15px 0 5px 0; font-size: 14px;">
+                                    You can read the complete, detailed document here: 
+                                    <a href="${process.env.FRONTEND_URL || 'https://drs-welfare.vercel.app'}/terms" style="color: #3182CE; font-weight: bold; text-decoration: underline;">Read Full Rules &amp; By-Laws</a>.
+                                </p>
                             </div>
-
-                            <div style="color: #234E52; margin: 15px 0;">
-                                <h4 style="color: #2D3748; margin: 10px 0;">Key Rules for Family Members</h4>
-                                <ol style="margin: 10px 0; padding-left: 20px;">
-                                    <li style="margin: 5px 0;">The lock-in period for all types of members will be 12 months/1 year. Support will not be provided if a nominee is accused of suicide or murder, and in special circumstances, the final decision will be that of the HCPSST.</li>
-                                    <li style="margin: 5px 0;">Members make the contribution directly into the account of the nominee of the deceased families and hence no individual or member will have the right to raise any kind of judicial challenge.</li>
-                                    <li style="margin: 5px 0;">In case of any dispute regarding the nominee, the State/Core Team will be free to take a decision after due scrutiny and provide assistance.</li>
-                                    <li style="margin: 5px 0;">All information on the Telegram/WhatsApp/App is provided from time to time. Any member who does not receive information from the Telegram group will be held responsible.</li>
-                                    <li style="margin: 5px 0;">Members will be able to get their queries answered through the helpline.</li>
-                                </ol>
+                            
+                            <div style="margin: 30px 0; padding: 20px; background-color: #EBF8FF; border-radius: 8px; border: 1px solid #D2E8FC;">
+                                <p style="color: #2B6CB0; margin: 0; font-size: 14px;">
+                                    If you have any questions or concerns, please don't hesitate to contact us.
+                                </p>
                             </div>
-
-                            <div style="color: #234E52; margin: 15px 0; padding: 15px; background-color: #FEF5E7; border-radius: 5px; border-left: 4px solid #F6AD55;">
-                                <p style="margin: 5px 0;"><strong>Important Note:</strong> Members give their contribution directly to the nominee of the deceased Doctor, hence there will be no legal right to receive any contribution in return for the contribution given by you, it will completely depend on the wish of the members. The HCPSST will not be responsible in case the contribution is less or no more after the appeal by the team.</p>
-                                <p style="margin: 5px 0;"><strong>In case of any decision, only the copy of the rules uploaded on the website will be valid.</strong></p>
-                            </div>
-                        </div>
-                        
-                        <div style="margin: 30px 0; padding: 20px; background-color: #E6FFFA; border-radius: 8px;">
-                            <p style="color: #234E52; margin: 0;">
-                                If you have any questions or concerns, please don't hesitate to contact us.
+                            <p style="color: #4A5568; font-size: 15px; line-height: 1.6; margin-bottom: 0;">
+                                Best regards,<br>
+                                <strong>The Doctors Community Team</strong>
                             </p>
                         </div>
-                        <p style="color: #4A5568; font-size: 16px;">
-                            Best regards,<br>
-                            The Doctors Community Team
-                        </p>
                     </div>
                 `
             };
@@ -394,55 +358,52 @@ const sendWelcomeEmail = async (doctorData) => {
                 to: doctorData.familyMember2.email,
                 subject: isUpdate ? updateSubject : 'Doctor Registration Notification - Doctors Community',
                 html: isUpdate ? updateHtml : `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                        <h2 style="color: #2D3748;">Doctor Registration Notification</h2>
-                        <p style="color: #4A5568; font-size: 16px;">Dear ${doctorData.familyMember2.name},</p>
-                        <p style="color: #4A5568; font-size: 16px;">
-                            This email is to inform you that Dr. ${doctorData.name} has registered with the Doctors Community
-                            and has listed you as a family member contact.
-                        </p>
-                        <p style="color: #4A5568; font-size: 16px;">
-                            As a registered family member, you will receive important notifications and updates
-                            related to Dr. ${doctorData.name}'s membership.
-                        </p>
-                        
-                        <div style="margin: 30px 0; padding: 20px; background-color: #E6FFFA; border-radius: 8px;">
-                            <h3 style="color: #234E52; margin-top: 0;">Important: HEALTH CARE PROFESSIONALS SELF SUPPORT SCHEME (HCPSST) Terms and Conditions</h3>
-                            <p style="color: #234E52; margin: 10px 0;">
-                                As a family member, you should be aware of the following comprehensive terms and conditions:
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #F0F8FF; padding: 25px; border-radius: 12px; border: 1px solid #D2E8FC;">
+                        <div style="background-color: #FFFFFF; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                            <h2 style="color: #1A365D; margin-top: 0; font-size: 22px; border-bottom: 2px solid #EBF8FF; padding-bottom: 15px;">Doctor Registration Notification</h2>
+                            <p style="color: #2D3748; font-size: 16px; line-height: 1.6;">Dear ${doctorData.familyMember2.name},</p>
+                            <p style="color: #2D3748; font-size: 16px; line-height: 1.6;">
+                                This email is to inform you that Dr. ${doctorData.name} has registered with the Doctors Community
+                                and has listed you as a family member contact.
+                            </p>
+                            <p style="color: #2D3748; font-size: 16px; line-height: 1.6;">
+                                As a registered family member, you will receive important notifications and updates
+                                related to Dr. ${doctorData.name}'s membership.
                             </p>
                             
-                            <div style="color: #234E52; margin: 15px 0;">
-                                <h4 style="color: #2D3748; margin: 10px 0;">About HCPSST</h4>
-                                <p style="margin: 5px 0;">HEALTH CARE PROFESSIONALS SELF SUPPORT SCHEME (HCPSST) was established for HEALTH CARE PROFESSIONALS and by HEALTH CARE PROFESSIONALS to support them. HCPSST is managed by the HEALTH CARE PROFESSIONALS TRUST.</p>
+                            <div style="margin: 30px 0; padding: 20px; background-color: #EBF8FF; border-radius: 8px; border-left: 4px solid #3182CE;">
+                                <h3 style="color: #1A365D; margin-top: 0; font-size: 18px;">Important: Rules &amp; Bye-Laws of Professionals Welfare Trust (PWT)</h3>
+                                <p style="color: #2B6CB0; font-weight: bold; margin: 10px 0;">
+                                    Please refer to the complete and official By-Laws of the Trust.
+                                </p>
+                                <p style="color: #2D3748; margin: 10px 0; font-size: 14px; line-height: 1.6;">
+                                    As a family member contact, you should be aware that the membership, assistance, and support are governed in accordance with the official <strong>Rules &amp; Bye-Laws of Professionals Welfare Trust (PWT)</strong>.
+                                </p>
+                                
+                                <p style="color: #2D3748; margin: 10px 0; font-size: 14px; line-height: 1.6;">
+                                    Key points for family members:
+                                </p>
+                                <ul style="margin: 10px 0; padding-left: 20px; color: #2D3748; font-size: 14px; line-height: 1.6;">
+                                    <li style="margin: 5px 0;"><strong>Lock-in Period:</strong> A standard lock-in period of 12 months/1 year applies to all types of members before benefits/assistance eligibility begins.</li>
+                                    <li style="margin: 5px 0;"><strong>Mutual Contributions:</strong> Contributions are sent directly from members to the nominee's designated account in times of need.</li>
+                                    <li style="margin: 5px 0;"><strong>Official Copy:</strong> In case of any dispute or decision, only the official copy of the Rules &amp; Bye-Laws uploaded on our website will be valid.</li>
+                                </ul>
+                                <p style="color: #2D3748; margin: 15px 0 5px 0; font-size: 14px;">
+                                    You can read the complete, detailed document here: 
+                                    <a href="${process.env.FRONTEND_URL || 'https://drs-welfare.vercel.app'}/terms" style="color: #3182CE; font-weight: bold; text-decoration: underline;">Read Full Rules &amp; By-Laws</a>.
+                                </p>
                             </div>
-
-                            <div style="color: #234E52; margin: 15px 0;">
-                                <h4 style="color: #2D3748; margin: 10px 0;">Key Rules for Family Members</h4>
-                                <ol style="margin: 10px 0; padding-left: 20px;">
-                                    <li style="margin: 5px 0;">The lock-in period for all types of members will be 12 months/1 year. Support will not be provided if a nominee is accused of suicide or murder, and in special circumstances, the final decision will be that of the HCPSST.</li>
-                                    <li style="margin: 5px 0;">Members make the contribution directly into the account of the nominee of the deceased families and hence no individual or member will have the right to raise any kind of judicial challenge.</li>
-                                    <li style="margin: 5px 0;">In case of any dispute regarding the nominee, the State/Core Team will be free to take a decision after due scrutiny and provide assistance.</li>
-                                    <li style="margin: 5px 0;">All information on the Telegram/WhatsApp/App is provided from time to time. Any member who does not receive information from the Telegram group will be held responsible.</li>
-                                    <li style="margin: 5px 0;">Members will be able to get their queries answered through the helpline.</li>
-                                </ol>
+                            
+                            <div style="margin: 30px 0; padding: 20px; background-color: #EBF8FF; border-radius: 8px; border: 1px solid #D2E8FC;">
+                                <p style="color: #2B6CB0; margin: 0; font-size: 14px;">
+                                    If you have any questions or concerns, please don't hesitate to contact us.
+                                </p>
                             </div>
-
-                            <div style="color: #234E52; margin: 15px 0; padding: 15px; background-color: #FEF5E7; border-radius: 5px; border-left: 4px solid #F6AD55;">
-                                <p style="margin: 5px 0;"><strong>Important Note:</strong> Members give their contribution directly to the nominee of the deceased Doctor, hence there will be no legal right to receive any contribution in return for the contribution given by you, it will completely depend on the wish of the members. The HCPSST will not be responsible in case the contribution is less or no more after the appeal by the team.</p>
-                                <p style="margin: 5px 0;"><strong>In case of any decision, only the copy of the rules uploaded on the website will be valid.</strong></p>
-                            </div>
-                        </div>
-                        
-                        <div style="margin: 30px 0; padding: 20px; background-color: #E6FFFA; border-radius: 8px;">
-                            <p style="color: #234E52; margin: 0;">
-                                If you have any questions or concerns, please don't hesitate to contact us.
+                            <p style="color: #4A5568; font-size: 15px; line-height: 1.6; margin-bottom: 0;">
+                                Best regards,<br>
+                                <strong>The Doctors Community Team</strong>
                             </p>
                         </div>
-                        <p style="color: #4A5568; font-size: 16px;">
-                            Best regards,<br>
-                            The Doctors Community Team
-                        </p>
                     </div>
                 `
             };

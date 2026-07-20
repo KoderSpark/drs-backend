@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const Doctor = require('../models/Doctor');
 const Payment = require('../models/Payment');
+const Log = require('../models/Log');
 const generateToken = require('../utils/generateToken');
 const { sendWelcomeEmail } = require('../utils/emailService');
 const { uploadBuffer } = require('../utils/cloudinaryUpload');
@@ -294,8 +295,6 @@ exports.approveDoctor = async (req, res) => {
     const { id } = req.params;
     const { disease, message } = req.body;
 
-    if (!disease) return res.status(400).json({ message: 'Disease name is required for approval' });
-
     const doctor = await Doctor.findById(id);
     if (!doctor) return res.status(404).json({ message: 'Doctor not found' });
     
@@ -305,6 +304,17 @@ exports.approveDoctor = async (req, res) => {
     doctor.approvedDate = new Date();
     
     await doctor.save();
+    
+    try {
+      await Log.create({
+        action: 'APPROVE_DOCTOR',
+        adminId: req.user.id,
+        targetId: doctor._id,
+        targetName: doctor.name,
+        details: disease ? `Approved for disease: ${disease}` : 'Approved via Admin Dashboard',
+        targetData: doctor.toObject()
+      });
+    } catch (logErr) { console.error('Failed to log approve action:', logErr); }
     
     const obj = doctor.toObject();
     delete obj.passwordHash;
@@ -327,7 +337,44 @@ exports.markDeceasedDoctor = async (req, res) => {
     doctor.deceasedDate = new Date();
     await doctor.save();
     
+    try {
+      await Log.create({
+        action: 'MARK_DECEASED',
+        adminId: req.user.id,
+        targetId: doctor._id,
+        targetName: doctor.name,
+        details: reason ? `Reason: ${reason}` : (diseaseName ? `Disease: ${diseaseName}` : 'Marked deceased via Admin Dashboard'),
+        targetData: doctor.toObject()
+      });
+    } catch (logErr) { console.error('Failed to log deceased action:', logErr); }
+    
     return res.json({ message: 'Doctor marked deceased' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+exports.deleteDoctor = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const doctor = await Doctor.findById(id);
+    if (!doctor) return res.status(404).json({ message: 'Doctor not found' });
+    
+    const name = doctor.name;
+    await Doctor.findByIdAndDelete(id);
+    
+    try {
+      await Log.create({
+        action: 'DELETE_DOCTOR',
+        adminId: req.user.id,
+        targetId: id,
+        targetName: name,
+        details: 'Deleted via Admin Dashboard',
+        targetData: doctor.toObject()
+      });
+    } catch (logErr) { console.error('Failed to log delete action:', logErr); }
+    
+    return res.json({ message: 'Doctor deleted successfully' });
   } catch (error) {
     return res.status(500).json({ message: 'Server error', error: error.message });
   }

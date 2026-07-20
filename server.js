@@ -41,6 +41,7 @@ app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/debug', require('./routes/debugRoutes'));
 app.use('/api/visitor', require('./routes/visitorRoutes'));
 app.use('/api/payments', require('./routes/paymentRoutes'));
+app.use('/api/logs', require('./routes/logRoutes'));
 
 const PORT = process.env.PORT || 5000;
 if (require.main === module) {

@@ -41,4 +41,7 @@ router.get('/:id', authMiddleware, doctorController.getDoctorById);
 router.patch('/:id/profile', authMiddleware, uploadFields, doctorController.updateDoctor);
 router.patch('/:id', authMiddleware, uploadFields, doctorController.updateDoctor);
 
+// Delete Profile
+router.delete('/:id', authMiddleware, doctorController.deleteDoctor);
+
 module.exports = router;
